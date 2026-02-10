@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 
@@ -41,13 +41,7 @@ export default function Page() {
       const res = await fetch("/api/rewrite", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message,
-          tone,
-          audience,
-          length,
-          strength,
-        }),
+        body: JSON.stringify({ message, tone, audience, length, strength }),
       });
 
       const data = await res.json();
@@ -158,3 +152,32 @@ export default function Page() {
         <button
           onClick={handleRewrite}
           disabled={!canSubmit}
+          className={`w-full py-3 rounded-xl font-semibold ${
+            canSubmit ? "bg-black text-white" : "bg-neutral-200 text-neutral-500"
+          }`}
+        >
+          {loading ? "Rewriting…" : "Rewrite My Message"}
+        </button>
+
+        {error && <p className="text-red-600 mt-3">{error}</p>}
+
+        {options.length > 0 && (
+          <div className="mt-6">
+            <h2 className="font-semibold mb-2">Options</h2>
+            {options.map((opt, i) => (
+              <div
+                key={i}
+                onClick={() => navigator.clipboard.writeText(opt)}
+                className="border rounded-xl p-3 mb-2 cursor-pointer"
+              >
+                <p className="text-sm font-medium mb-1">Option {i + 1}</p>
+                <p className="text-sm whitespace-pre-wrap">{opt}</p>
+                <p className="text-xs text-neutral-500 mt-1">Tap to copy</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}

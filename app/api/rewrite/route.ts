@@ -38,4 +38,67 @@ Output rules:
 - Output ONLY a JSON array of strings.
 `;
 
-export async function POST(req:
+export async function POST(req: Request) {
+  try {
+    const {
+      message,
+      tone,
+      audience = "Friend",
+      length,
+      strength,
+    } = await req.json();
+
+    if (!message || typeof message !== "string" || !message.trim()) {
+      return NextResponse.json({ error: "Message is required." }, { status: 400 });
+    }
+
+    const userPrompt = `
+Rewrite this message for texting a: ${audience}
+
+Tone: ${tone}
+Length: ${length}
+Strength: ${strength}
+
+Original:
+${message}
+
+Create 3 distinct options using these strategies:
+1) Most natural everyday text
+2) Clearer and more structured
+3) Slightly softer (or firmer if strength is positive)
+`;
+
+    const response = await openai.responses.create({
+      model: "gpt-4.1-mini",
+      input: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: userPrompt },
+      ],
+      temperature: 0.8,
+    });
+
+    const text =
+  typeof (response as any).output_text === "string"
+    ? (response as any).output_text
+    : "[]";
+
+    let options: string[] = [];
+    try {
+      const parsed = JSON.parse(text);
+      options = Array.isArray(parsed) ? parsed.map(String) : [String(parsed)];
+    } catch {
+      options = [String(text)];
+    }
+
+    // Ensure exactly 3 options
+    if (options.length > 3) options = options.slice(0, 3);
+    while (options.length < 3) options.push(options[options.length - 1] ?? "");
+
+    return NextResponse.json({ options });
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: err?.message || "Server error" },
+      { status: 500 }
+    );
+  }
+}
