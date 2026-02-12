@@ -4,9 +4,17 @@ import OpenAI from "openai";
 export const runtime = "nodejs";
 
 const SYSTEM_PROMPT = `
-You are Text Tone, an elite message editor. Your job is to rewrite a user's message so the tone matches their intent—without changing the meaning.
-(…keep your existing SYSTEM_PROMPT text here…)
-`;
+You are Text Tone, an expert communication assistant.
+
+Rewrite the user's message while preserving meaning and facts.
+Follow the requested tone carefully.
+Never add new information.
+
+Return EXACTLY 3 options, formatted as:
+1) ...
+2) ...
+3) ...
+No extra commentary.
 
 export async function POST(req: Request) {
   try {
@@ -57,18 +65,35 @@ Create 3 distinct options using these strategies:
       temperature: 0.8,
     });
 
-    const text = (response as any).output_text ?? "[]";
+   const raw =
+  (response as any).output_text ||
+  (response as any).output?.[0]?.content?.[0]?.text ||
+  "";
 
-    let options: string[] = [];
-    try {
-      const parsed = JSON.parse(text);
-      options = Array.isArray(parsed) ? parsed.map(String) : [String(parsed)];
-    } catch {
-      options = [String(text)];
-    }
+const lines = raw
+  .split("\n")
+  .map((l: string) => l.trim())
+  .filter(Boolean);
 
-    if (options.length > 3) options = options.slice(0, 3);
-    while (options.length < 3) options.push(options[options.length - 1] ?? "");
+// Expect "1) ...", "2) ...", "3) ..."
+let options = lines
+  .filter((l: string) => /^[1-3][\).\s]/.test(l))
+  .map((l: string) => l.replace(/^[1-3][\).\s]+/, "").trim())
+  .slice(0, 3);
+
+// If the model didn't format as numbered lines, fall back gracefully
+if (options.length < 3) {
+  const fallback = raw.trim();
+  if (!fallback) {
+    return NextResponse.json(
+      { error: "Rewrite failed. Try again." },
+      { status: 500 }
+    );
+  }
+  options = [fallback, fallback, fallback].slice(0, 3);
+}
+
+return NextResponse.json({ options });
 
     return NextResponse.json({ options });
   } catch (err: any) {
