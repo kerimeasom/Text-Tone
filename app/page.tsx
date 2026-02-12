@@ -14,7 +14,7 @@ export default function HomePage() {
           </div>
 
           <a
-            href="/app"
+            href="/tool"
             className="rounded-full border px-4 py-2 text-sm font-medium hover:bg-neutral-50"
           >
             Open the app
@@ -40,7 +40,7 @@ export default function HomePage() {
 
             <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
               <a
-                href="/app"
+                href="/tool"
                 className="inline-flex items-center justify-center rounded-xl bg-black px-6 py-3 text-sm font-semibold text-white hover:bg-neutral-900"
               >
                 Try Text Tone
@@ -125,7 +125,7 @@ export default function HomePage() {
               </div>
 
               <a
-                href="/app"
+                href="/tool"
                 className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-black px-6 py-3 text-sm font-semibold text-white hover:bg-neutral-900"
               >
                 Try it now
@@ -183,7 +183,7 @@ export default function HomePage() {
           </p>
           <div className="mt-5">
             <a
-              href="/app"
+              href="/tool"
               className="inline-flex items-center justify-center rounded-xl bg-white px-6 py-3 text-sm font-semibold text-black hover:bg-neutral-100"
             >
               Try Text Tone
